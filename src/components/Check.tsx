@@ -21,7 +21,7 @@ const Check: FC = () => {
 
   useEffect(() => {
     getProvinces();
-  }, [provinces]);
+  }, []);
 
   const valAsal = (val: string): void => {
     setAsal(val);
