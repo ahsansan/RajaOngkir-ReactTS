@@ -26,7 +26,6 @@ const CheckKota: FC = () => {
 
   useEffect(() => {
     getCity();
-    setIsLoading(false);
   }, []);
 
   const valBerat = (val: string): void => {
@@ -40,6 +39,7 @@ const CheckKota: FC = () => {
     try {
       const resp = await API.get(`/kota/`);
       setCities(resp.data.rajaongkir.results);
+      setIsLoading(false);
     } catch (err) {
       console.log(err);
     }
