@@ -1,6 +1,7 @@
 import { API } from "../config/api";
 import { useState, useEffect, FC, SyntheticEvent, ChangeEvent } from "react";
 import CityData from "../types/city";
+import Loading from './Loading';
 import { convertToRupiah } from "../utils/rupiah";
 
 type CostData = {
@@ -19,9 +20,13 @@ const CheckKota: FC = () => {
   const [suggestionsKotaAsal, setSuggestionsKotaAsal] = useState<CityData[]>([]);
   const [keywordKotaTujuan, setKeywordKotaTujuan] = useState<string>("");
   const [suggestionsKotaTujuan, setSuggestionsKotaTujuan] = useState<CityData[]>([]);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [isDisable, setIsDisable] = useState<boolean>(false);
+  const [isKosong, setIsKosong] = useState<boolean>(false);
 
   useEffect(() => {
     getCity();
+    setIsLoading(false);
   }, []);
 
   const valBerat = (val: string): void => {
@@ -67,15 +72,27 @@ const CheckKota: FC = () => {
   const getCost = async (e: SyntheticEvent) => {
     e.preventDefault();
     try {
-      const resp = await API.get(`ongkos/${asal}/${tujuan}/${berat}/${kurir}`);
-      setCostList(resp.data.rajaongkir.results[0].costs);
+      setIsDisable(true);
+      if (asal && tujuan && berat && kurir) {
+        const resp = await API.get(`ongkos/${asal}/${tujuan}/${berat}/${kurir}`);
+        setCostList(resp.data.rajaongkir.results[0].costs);
+        setIsKosong(false);
+      } else {
+        setIsKosong(true);
+      }
+      setIsDisable(false);
     } catch (err) {
       console.log(err);
     }
   };
 
   return (
-    <div className="max-w-lg border shadow-lg bg-slate-50 mx-auto my-7 p-5 rounded-lg">
+    <>
+    {isLoading ? (<Loading/>) : (
+      <div className="max-w-lg border shadow-lg bg-slate-50 mx-auto my-7 p-5 rounded-lg">
+        {isKosong && (
+          <p className="text-center text-red-600 font-semibold">Isi dulu semua inputan nya!</p>
+        )}
       <form className="mt-5">
         <div>
           <label htmlFor="city-origin" className="label-section">Pilih Kota Asal</label>
@@ -138,9 +155,10 @@ const CheckKota: FC = () => {
         </select>
         <button
           onClick={getCost}
-          className="text-lg bg-red-900 hover:bg-red-700 text-white p-3 rounded-xl mb-5"
+          disabled={isDisable}
+          className={isDisable ? "text-lg  bg-slate-400 text-slate-200 p-3 rounded-xl mb-5" : "text-lg bg-red-900 hover:bg-red-700 text-white p-3 rounded-xl mb-5"}
         >
-          Cek Ongkir
+          {isDisable ? "Tunggu sebentar" : "Cek Ongkir"}
         </button>
       </form>
 
@@ -162,6 +180,8 @@ const CheckKota: FC = () => {
         </div>
       </div>
     </div>
+    )}
+    </>
   );
 };
 
